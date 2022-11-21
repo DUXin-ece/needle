@@ -11,7 +11,7 @@ class Transform:
 
 
 class RandomFlipHorizontal(Transform):
-    def __init__(self, p = 0.5):
+    def __init__(self, p=0.5):
         self.p = p
 
     def __call__(self, img):
@@ -26,9 +26,9 @@ class RandomFlipHorizontal(Transform):
         flip_img = np.random.rand() < self.p
         ### BEGIN YOUR SOLUTION
         if flip_img:
-          return np.flip(img, 1)
+            return np.flip(img, 1)
         else:
-          return img
+            return img
         ### END YOUR SOLUTION
 
 
@@ -44,20 +44,22 @@ class RandomCrop(Transform):
             H x W x C NAArray of cliped image
         Note: generate the image shifted by shift_x, shift_y specified below
         """
-        shift_x, shift_y = np.random.randint(low=-self.padding, high=self.padding+1, size=2)
+        shift_x, shift_y = np.random.randint(
+            low=-self.padding, high=self.padding + 1, size=2
+        )
         ### BEGIN YOUR SOLUTION
         result = np.zeros(img.shape)
         H, W, C = img.shape
-        if abs(shift_x) >=H or abs(shift_y) >= W:
-          return result;
+        if abs(shift_x) >= H or abs(shift_y) >= W:
+            return result
         if shift_x >= 0 and shift_y >= 0:
-          result[:H - shift_x, :W - shift_y, :] = img[shift_x: , shift_y:, :]
+            result[: H - shift_x, : W - shift_y, :] = img[shift_x:, shift_y:, :]
         elif shift_x < 0 and shift_y >= 0:
-          result[-shift_x:, :W - shift_y, :] = img[:H+shift_x , shift_y:, :]
+            result[-shift_x:, : W - shift_y, :] = img[: H + shift_x, shift_y:, :]
         elif shift_x >= 0 and shift_y < 0:
-          result[:H - shift_x, -shift_y:, :] = img[shift_x: , :W+shift_y, :]
+            result[: H - shift_x, -shift_y:, :] = img[shift_x:, : W + shift_y, :]
         else:
-          result[-shift_x:, -shift_y:, :] = img[:H+shift_x, :W+shift_y, :]
+            result[-shift_x:, -shift_y:, :] = img[: H + shift_x, : W + shift_y, :]
         return result
         ### END YOUR SOLUTION
 
@@ -102,24 +104,25 @@ class DataLoader:
     batch_size: Optional[int]
 
     def __init__(
-        self,
-        dataset: Dataset,
-        batch_size: Optional[int] = 1,
-        shuffle: bool = False,
+        self, dataset: Dataset, batch_size: Optional[int] = 1, shuffle: bool = False,
     ):
 
         self.dataset = dataset
         self.shuffle = shuffle
         self.batch_size = batch_size
         if not self.shuffle:
-            self.ordering = np.array_split(np.arange(len(dataset)), range(batch_size, len(dataset), batch_size))
+            self.ordering = np.array_split(
+                np.arange(len(dataset)), range(batch_size, len(dataset), batch_size)
+            )
 
     def __iter__(self):
         ### BEGIN YOUR SOLUTION
         if self.shuffle:
-          indices = np.arange(len(self.dataset))
-          np.random.shuffle(indices)
-          self.ordering = np.array_split(indices, range(self.batch_size, len(self.dataset), self.batch_size)) 
+            indices = np.arange(len(self.dataset))
+            np.random.shuffle(indices)
+            self.ordering = np.array_split(
+                indices, range(self.batch_size, len(self.dataset), self.batch_size)
+            )
         self.ordering = iter(self.ordering)
         ### END YOUR SOLUTION
         return self
@@ -143,9 +146,14 @@ class MNISTDataset(Dataset):
         ### BEGIN YOUR SOLUTION
         super().__init__(transforms)
         with gzip.open(image_filename) as image_file:
-          self.images = np.frombuffer(image_file.read(), offset=16, dtype=np.uint8).astype(np.float32).reshape(-1, 28, 28, 1) / 255
+            self.images = (
+                np.frombuffer(image_file.read(), offset=16, dtype=np.uint8)
+                .astype(np.float32)
+                .reshape(-1, 28, 28, 1)
+                / 255
+            )
         with gzip.open(label_filename) as label_file:
-          self.labels = np.frombuffer(label_file.read(), offset=8, dtype=np.uint8)
+            self.labels = np.frombuffer(label_file.read(), offset=8, dtype=np.uint8)
         ### END YOUR SOLUTION
 
     def __getitem__(self, index) -> object:
@@ -157,6 +165,7 @@ class MNISTDataset(Dataset):
         ### BEGIN YOUR SOLUTION
         return self.labels.shape[0]
         ### END YOUR SOLUTION
+
 
 class NDArrayDataset(Dataset):
     def __init__(self, *arrays):

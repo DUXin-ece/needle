@@ -49,8 +49,6 @@ def _child_modules(value: object) -> List["Module"]:
         return []
 
 
-
-
 class Module:
     def __init__(self):
         self.training = True
@@ -82,26 +80,33 @@ class Identity(Module):
 
 
 class Linear(Module):
-    def __init__(self, in_features, out_features, bias=True, device=None, dtype="float32"):
+    def __init__(
+        self, in_features, out_features, bias=True, device=None, dtype="float32"
+    ):
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
-        
+
         ### BEGIN YOUR SOLUTION
-        self.weight = Parameter(init.kaiming_uniform(in_features, out_features), dtype=dtype)
+        self.weight = Parameter(
+            init.kaiming_uniform(in_features, out_features), dtype=dtype
+        )
         self.require_bias = bias
         if bias:
-          self.bias = Parameter(ops.transpose(init.kaiming_uniform(out_features, 1)), dtype=dtype)
+            self.bias = Parameter(
+                ops.transpose(init.kaiming_uniform(out_features, 1)), dtype=dtype
+            )
         ### END YOUR SOLUTION
 
     def forward(self, X: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
         if self.require_bias:
-          return ops.matmul(X, self.weight) + ops.broadcast_to(self.bias, (X.shape[0], self.out_features)) 
+            return ops.matmul(X, self.weight) + ops.broadcast_to(
+                self.bias, (X.shape[0], self.out_features)
+            )
         else:
-          return ops.matmul(X, self.weight)
+            return ops.matmul(X, self.weight)
         ### END YOUR SOLUTION
-
 
 
 class Flatten(Module):
@@ -110,7 +115,7 @@ class Flatten(Module):
         batch_size = X.shape[0]
         dimension = 1
         for i in X.shape[1:]:
-          dimension = dimension * i
+            dimension = dimension * i
         return ops.reshape(X, (batch_size, dimension))
         ### END YOUR SOLUTION
 
@@ -130,7 +135,7 @@ class Sequential(Module):
         ### BEGIN YOUR SOLUTION
         out = x
         for module in self.modules:
-          out = module(out)
+            out = module(out)
         return out
         ### END YOUR SOLUTION
 
@@ -140,9 +145,14 @@ class SoftmaxLoss(Module):
         ### BEGIN YOUR SOLUTION
         m = logits.shape[0]  # num of samples
         k = logits.shape[1]  # dimensionality of output
-        return ops.summation(ops.logsumexp(logits, axes = (1, )) - ops.summation(logits * init.one_hot(k, y), axes = (1, ))) / m
+        return (
+            ops.summation(
+                ops.logsumexp(logits, axes=(1,))
+                - ops.summation(logits * init.one_hot(k, y), axes=(1,))
+            )
+            / m
+        )
         ### END YOUR SOLUTION
-
 
 
 class BatchNorm1d(Module):
@@ -158,20 +168,30 @@ class BatchNorm1d(Module):
         self.running_var = Tensor(np.ones(dim), dtype=dtype)
         ### END YOUR SOLUTION
 
-
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        mean = ops.summation(x, axes = (0, )) / x.shape[0]
+        mean = ops.summation(x, axes=(0,)) / x.shape[0]
         centerlized_x = x - ops.broadcast_to(mean, x.shape)
-        var = ops.summation(ops.power_scalar(centerlized_x, 2), axes = (0, )) / x.shape[0]
+        var = ops.summation(ops.power_scalar(centerlized_x, 2), axes=(0,)) / x.shape[0]
         if self.training:
-          self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * mean
-          self.running_var = (1 - self.momentum) * self.running_var + self.momentum * var
-          return ops.divide(ops.broadcast_to(self.weight, x.shape) * (centerlized_x), \
-          ops.broadcast_to(ops.power_scalar(var + self.eps, 0.5), x.shape)) + ops.broadcast_to(self.bias, x.shape)
+            self.running_mean = (
+                1 - self.momentum
+            ) * self.running_mean + self.momentum * mean
+            self.running_var = (
+                1 - self.momentum
+            ) * self.running_var + self.momentum * var
+            return ops.divide(
+                ops.broadcast_to(self.weight, x.shape) * (centerlized_x),
+                ops.broadcast_to(ops.power_scalar(var + self.eps, 0.5), x.shape),
+            ) + ops.broadcast_to(self.bias, x.shape)
         else:
-          return ops.divide(ops.broadcast_to(self.weight, x.shape) * (x - ops.broadcast_to(self.running_mean, x.shape)), \
-          ops.broadcast_to(ops.power_scalar(self.running_var + self.eps, 0.5), x.shape)) + ops.broadcast_to(self.bias, x.shape)
+            return ops.divide(
+                ops.broadcast_to(self.weight, x.shape)
+                * (x - ops.broadcast_to(self.running_mean, x.shape)),
+                ops.broadcast_to(
+                    ops.power_scalar(self.running_var + self.eps, 0.5), x.shape
+                ),
+            ) + ops.broadcast_to(self.bias, x.shape)
         ### END YOUR SOLUTION
 
 
@@ -187,28 +207,33 @@ class LayerNorm1d(Module):
 
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        # lesson : Explicitly write all the broadcast steps. If we omit the broadcast in element-wise division, 
-        # the backward method will crash. Same situation will happen if we omit the broadcast in computing 
+        # lesson : Explicitly write all the broadcast steps. If we omit the broadcast in element-wise division,
+        # the backward method will crash. Same situation will happen if we omit the broadcast in computing
         # centerlized_x.
-        mean = ops.reshape(ops.summation(x, axes = (1, )) / x.shape[1], (x.shape[0], 1))
+        mean = ops.reshape(ops.summation(x, axes=(1,)) / x.shape[1], (x.shape[0], 1))
         centerlized_x = x - ops.broadcast_to(mean, x.shape)
-        var = ops.reshape(ops.summation(ops.power_scalar(centerlized_x, 2), axes = (1, )) / x.shape[1], (x.shape[0], 1))
-        return ops.divide(ops.broadcast_to(self.weight, x.shape) * (centerlized_x), \
-        ops.broadcast_to(ops.power_scalar(var + self.eps, 0.5), x.shape)) + ops.broadcast_to(self.bias, x.shape)
+        var = ops.reshape(
+            ops.summation(ops.power_scalar(centerlized_x, 2), axes=(1,)) / x.shape[1],
+            (x.shape[0], 1),
+        )
+        return ops.divide(
+            ops.broadcast_to(self.weight, x.shape) * (centerlized_x),
+            ops.broadcast_to(ops.power_scalar(var + self.eps, 0.5), x.shape),
+        ) + ops.broadcast_to(self.bias, x.shape)
         ### END YOUR SOLUTION
 
 
 class Dropout(Module):
-    def __init__(self, p = 0.5):
+    def __init__(self, p=0.5):
         super().__init__()
         self.p = p
 
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
         if self.training:
-          return init.randb(*x.shape, p = 1 - self.p) * x / (1 - self.p)
+            return init.randb(*x.shape, p=1 - self.p) * x / (1 - self.p)
         else:
-          return x
+            return x
         ### END YOUR SOLUTION
 
 
@@ -221,6 +246,3 @@ class Residual(Module):
         ### BEGIN YOUR SOLUTION
         return x + self.fn(x)
         ### END YOUR SOLUTION
-
-
-

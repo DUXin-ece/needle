@@ -1,5 +1,6 @@
 import sys
-sys.path.append('../python/')
+
+sys.path.append("../python/")
 import needle as ndl
 import needle.nn as nn
 import numpy as np
@@ -12,9 +13,10 @@ def MLPNet(dim, hidden_dim=200, num_classes=10):
         nn.Flatten(),
         nn.Linear(dim, hidden_dim),
         nn.ReLU(),
-        nn.Linear(hidden_dim, num_classes)
+        nn.Linear(hidden_dim, num_classes),
     )
     return model
+
 
 def epoch(dataloader, model, opt=None):
     np.random.seed(4)
@@ -48,9 +50,14 @@ def epoch(dataloader, model, opt=None):
     ### END YOUR SOLUTION
 
 
-
-def train_mnist(batch_size=100, epochs=10, optimizer=ndl.optim.Adam,
-                lr=0.001, hidden_dim=200, data_dir="data"):
+def train_mnist(
+    batch_size=100,
+    epochs=10,
+    optimizer=ndl.optim.Adam,
+    lr=0.001,
+    hidden_dim=200,
+    data_dir="data",
+):
     np.random.seed(4)
     ### BEGIN YOUR SOLUTION
     train_img_path = os.path.join(data_dir, "train-images-idx3-ubyte.gz")
@@ -60,18 +67,22 @@ def train_mnist(batch_size=100, epochs=10, optimizer=ndl.optim.Adam,
     train_dataset = ndl.data.MNISTDataset(train_img_path, train_label_path)
     test_dataset = ndl.data.MNISTDataset(test_img_path, test_label_path)
 
-    train_dataloader = ndl.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    train_dataloader = ndl.data.DataLoader(
+        train_dataset, batch_size=batch_size, shuffle=True
+    )
     test_dataloader = ndl.data.DataLoader(test_dataset)
     model = MLPNet(784, hidden_dim=hidden_dim)
     opt = optimizer(model.parameters(), lr=lr)
 
     for _ in range(epochs):
         train_err_rate, train_loss = epoch(train_dataloader, model, opt)
-        print("average error rate: %.2f, average training loss: %.2f" % (train_err_rate, train_loss))
+        print(
+            "average error rate: %.2f, average training loss: %.2f"
+            % (train_err_rate, train_loss)
+        )
     test_err_rate, test_loss = epoch(test_dataloader, model)
     print("test error rate: %.2f" % test_err_rate)
     ### END YOUR SOLUTION
-
 
 
 if __name__ == "__main__":

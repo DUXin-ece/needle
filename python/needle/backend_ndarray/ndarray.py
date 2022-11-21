@@ -242,10 +242,13 @@ class NDArray:
 
         ### BEGIN YOUR SOLUTION
         if self.size != prod(new_shape):
-          raise ValueError()
+            raise ValueError()
         new_strides = NDArray.compact_strides(new_shape)
         return NDArray.make(
-            new_shape, strides=tuple(new_strides), device=self.device, handle=self._handle
+            new_shape,
+            strides=tuple(new_strides),
+            device=self.device,
+            handle=self._handle,
         )
         ### END YOUR SOLUTION
 
@@ -272,10 +275,13 @@ class NDArray:
         new_shape = []
         new_strides = []
         for axis in new_axes:
-          new_shape.append(self._shape[axis])
-          new_strides.append(self._strides[axis])
+            new_shape.append(self._shape[axis])
+            new_strides.append(self._strides[axis])
         return NDArray.make(
-            new_shape, strides=tuple(new_strides), device=self.device, handle=self._handle
+            new_shape,
+            strides=tuple(new_strides),
+            device=self.device,
+            handle=self._handle,
         )
         ### END YOUR SOLUTION
 
@@ -298,15 +304,18 @@ class NDArray:
 
         ### BEGIN YOUR SOLUTION
         for i in range(len(new_shape)):
-          assert (new_shape[i] == self._shape[i] or self._shape[i] == 1)
+            assert new_shape[i] == self._shape[i] or self._shape[i] == 1
         new_strides = []
         for i in range(len(new_shape)):
-          if self._shape[i] == 1 :
-            new_strides.append(0)
-          else:
-            new_strides.append(self._strides[i])
+            if self._shape[i] == 1:
+                new_strides.append(0)
+            else:
+                new_strides.append(self._strides[i])
         return NDArray.make(
-            new_shape, strides=tuple(new_strides), device=self.device, handle=self._handle
+            new_shape,
+            strides=tuple(new_strides),
+            device=self.device,
+            handle=self._handle,
         )
         ### END YOUR SOLUTION
 
@@ -374,13 +383,17 @@ class NDArray:
         strides = []
         offset = 0
         for i, idx in enumerate(idxs):
-          shape.append((idx.stop - idx.start - 1) // idx.step + 1)
-          strides.append(idx.step * self._strides[i])
-          offset += idx.start * self._strides[i]
+            shape.append((idx.stop - idx.start - 1) // idx.step + 1)
+            strides.append(idx.step * self._strides[i])
+            offset += idx.start * self._strides[i]
         return NDArray.make(
-            tuple(shape), strides=tuple(strides), device=self.device, handle=self._handle, offset=offset
+            tuple(shape),
+            strides=tuple(strides),
+            device=self.device,
+            handle=self._handle,
+            offset=offset,
         )
-        
+
         ### END YOUR SOLUTION
 
     def __setitem__(self, idxs, other):
@@ -563,8 +576,7 @@ class NDArray:
 
     def sum(self, axis=None):
         view, out = self.reduce_view_out(axis)
-        
-        
+
         self.device.reduce_sum(view.compact()._handle, out._handle, view.shape[-1])
         return out
 

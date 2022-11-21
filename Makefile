@@ -10,7 +10,7 @@ lib:
 
 format:
 	python3 -m black .
-	clang-format -i src/*.cc src/*.cu
+	clang-format-12 -i src/*.cc src/*.cu
 
 clean:
 	rm -rf build python/needle/backend_ndarray/ndarray_backend*.so

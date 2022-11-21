@@ -42,12 +42,12 @@ class CPUDevice(Device):
         return numpy.ones(shape, dtype=dtype)
 
     def randn(self, *shape):
-        # note: numpy doesn't support types within standard random routines, and 
+        # note: numpy doesn't support types within standard random routines, and
         # .astype("float32") does work if we're generating a singleton
-        return numpy.random.randn(*shape) 
+        return numpy.random.randn(*shape)
 
     def rand(self, *shape):
-        # note: numpy doesn't support types within standard random routines, and 
+        # note: numpy doesn't support types within standard random routines, and
         # .astype("float32") does work if we're generating a singleton
         return numpy.random.rand(*shape)
 
@@ -186,10 +186,7 @@ class Value:
     def make_const(cls, data, *, requires_grad=False):
         value = cls.__new__(cls)
         value._init(
-            None,
-            [],
-            cached_data=data,
-            requires_grad=requires_grad,
+            None, [], cached_data=data, requires_grad=requires_grad,
         )
         return value
 
@@ -267,10 +264,7 @@ class Tensor(Value):
             cached_data = Tensor._array_from_numpy(array, device=device, dtype=dtype)
 
         self._init(
-            None,
-            [],
-            cached_data=cached_data,
-            requires_grad=requires_grad,
+            None, [], cached_data=cached_data, requires_grad=requires_grad,
         )
 
     @staticmethod
@@ -309,10 +303,7 @@ class Tensor(Value):
     @data.setter
     def data(self, value):
         assert isinstance(value, Tensor)
-        assert value.dtype == self.dtype, "%s %s" % (
-            value.dtype,
-            self.dtype,
-        )
+        assert value.dtype == self.dtype, "%s %s" % (value.dtype, self.dtype,)
         self.cached_data = value.realize_cached_data()
 
     def detach(self):
@@ -336,7 +327,11 @@ class Tensor(Value):
         return data.device
 
     def backward(self, out_grad=None):
-        out_grad = out_grad if out_grad else init.ones(*self.shape, dtype=self.dtype, device=self.device)
+        out_grad = (
+            out_grad
+            if out_grad
+            else init.ones(*self.shape, dtype=self.dtype, device=self.device)
+        )
         compute_gradient_of_variables(self, out_grad)
 
     def __repr__(self):
@@ -427,14 +422,14 @@ def compute_gradient_of_variables(output_tensor, out_grad):
     ### BEGIN YOUR SOLUTION
     result = []
     for i in reverse_topo_order:
-      i.grad = sum_node_list(node_to_output_grads_list[i])
-      if(i.op != None):
-        partial_adjoints_i = i.op.gradient_as_tuple(i.grad, i)
-        for idx, k in enumerate(i.inputs):
-          if(k in node_to_output_grads_list.keys()):
-            node_to_output_grads_list[k].append(partial_adjoints_i[idx])
-          else:
-            node_to_output_grads_list[k] = [partial_adjoints_i[idx]]
+        i.grad = sum_node_list(node_to_output_grads_list[i])
+        if i.op != None:
+            partial_adjoints_i = i.op.gradient_as_tuple(i.grad, i)
+            for idx, k in enumerate(i.inputs):
+                if k in node_to_output_grads_list.keys():
+                    node_to_output_grads_list[k].append(partial_adjoints_i[idx])
+                else:
+                    node_to_output_grads_list[k] = [partial_adjoints_i[idx]]
     ### END YOUR SOLUTION
 
 
@@ -450,8 +445,8 @@ def find_topo_sort(node_list: List[Value]) -> List[Value]:
     topo_order = []
     visited = {}
     for node in node_list:
-      if(not node in visited.keys()):
-        topo_sort_dfs(node, visited, topo_order)
+        if not node in visited.keys():
+            topo_sort_dfs(node, visited, topo_order)
     return topo_order
     ### END YOUR SOLUTION
 
@@ -459,11 +454,11 @@ def find_topo_sort(node_list: List[Value]) -> List[Value]:
 def topo_sort_dfs(node, visited, topo_order):
     """Post-order DFS"""
     ### BEGIN YOUR SOLUTION
-    if(node == None or node in visited.keys()):
-      return
+    if node == None or node in visited.keys():
+        return
     visited[node] = True
     for child in node.inputs:
-      topo_sort_dfs(child, visited, topo_order)
+        topo_sort_dfs(child, visited, topo_order)
     topo_order.append(node)
     ### END YOUR SOLUTION
 
@@ -477,4 +472,5 @@ def sum_node_list(node_list):
     """Custom sum function in order to avoid create redundant nodes in Python sum implementation."""
     from operator import add
     from functools import reduce
+
     return reduce(add, node_list)
