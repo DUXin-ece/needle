@@ -9,60 +9,7 @@ from needle import init
 LAZY_MODE = False
 TENSOR_COUNTER = 0
 
-# NOTE: we will numpy as the array_api
-# to backup our computations, this line will change in later homeworks
-import numpy as array_api
-
-NDArray = numpy.ndarray
-
-
-class Device:
-    """Indicates the device supporting an NDArray."""
-
-
-class CPUDevice(Device):
-    """Represents data that sits in CPU"""
-
-    def __repr__(self):
-        return "needle.cpu()"
-
-    def __hash__(self):
-        return self.__repr__().__hash__()
-
-    def __eq__(self, other):
-        return isinstance(other, CPUDevice)
-
-    def enabled(self):
-        return True
-
-    def zeros(self, *shape, dtype="float32"):
-        return numpy.zeros(shape, dtype=dtype)
-
-    def ones(self, *shape, dtype="float32"):
-        return numpy.ones(shape, dtype=dtype)
-
-    def randn(self, *shape):
-        # note: numpy doesn't support types within standard random routines, and
-        # .astype("float32") does work if we're generating a singleton
-        return numpy.random.randn(*shape)
-
-    def rand(self, *shape):
-        # note: numpy doesn't support types within standard random routines, and
-        # .astype("float32") does work if we're generating a singleton
-        return numpy.random.rand(*shape)
-
-    def one_hot(self, n, i, dtype="float32"):
-        return numpy.eye(n, dtype=dtype)[i]
-
-
-def cpu():
-    """Return cpu device"""
-    return CPUDevice()
-
-
-def all_devices():
-    """return a list of all available devices"""
-    return [cpu()]
+from .backend_selection import Device, array_api, NDArray, default_device
 
 
 class Op:

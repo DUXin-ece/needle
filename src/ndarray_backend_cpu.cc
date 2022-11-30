@@ -379,10 +379,9 @@ void MatmulTiled(const AlignedArray &a, const AlignedArray &b,
   size_t a_row = m / TILE;
   size_t b_col = p / TILE;
   size_t a_col = n / TILE;
+  std::memset(out->ptr, 0, (a_row * b_col) * TILE * TILE * ELEM_SIZE);
   for (int i = 0; i < a_row; i++) {
     for (int j = 0; j < b_col; j++) {
-      std::memset(out->ptr + TILE * TILE * (i * a_col + j), 0,
-                  TILE * TILE * ELEM_SIZE);
       for (int k = 0; k < a_col; k++) {
         AlignedDot(a.ptr + TILE * TILE * (i * a_col + k),
                    b.ptr + TILE * TILE * (k * b_col + j),
