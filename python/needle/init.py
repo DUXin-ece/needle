@@ -54,6 +54,20 @@ def one_hot(n, i, device=None, dtype="float32", requires_grad=False):
     )
 
 
+def zeros_like(array, *, device=None, requires_grad=False):
+    device = device if device else array.device
+    return zeros(
+        *array.shape, dtype=array.dtype, device=device, requires_grad=requires_grad
+    )
+
+
+def ones_like(array, *, device=None, requires_grad=False):
+    device = device if device else array.device
+    return ones(
+        *array.shape, dtype=array.dtype, device=device, requires_grad=requires_grad
+    )
+
+
 def xavier_uniform(fan_in, fan_out, gain=1.0, **kwargs):
     ### BEGIN YOUR SOLUTION
     a = gain * math.sqrt(6 / (fan_in + fan_out))
