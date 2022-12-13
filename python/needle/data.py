@@ -7,7 +7,6 @@ from typing import Iterator, Optional, List, Sized, Union, Iterable, Any
 from needle import backend_ndarray as nd
 
 
-
 class Transform:
     def __call__(self, x):
         raise NotImplementedError
@@ -134,8 +133,9 @@ class DataLoader:
         ### BEGIN YOUR SOLUTION
         a = next(self.ordering)
         selected_data = self.dataset[a]
-        result = tuple(Tensor(i) for i in selected_data)
-        return result
+        X = Tensor(selected_data[0])
+        y = Tensor(selected_data[1])
+        return (X, y)
         ### END YOUR SOLUTION
 
 
