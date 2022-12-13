@@ -39,10 +39,10 @@ class RandomCrop(Transform):
         self.padding = padding
 
     def __call__(self, img):
-        """ Zero pad and then randomly crop an image.
+        """Zero pad and then randomly crop an image.
         Args:
              img: H x W x C NDArray of an image
-        Return 
+        Return
             H x W x C NAArray of cliped image
         Note: generate the image shifted by shift_x, shift_y specified below
         """
@@ -101,12 +101,15 @@ class DataLoader:
             (default: ``1``).
         shuffle (bool, optional): set to ``True`` to have the data reshuffled
             at every epoch (default: ``False``).
-     """
+    """
     dataset: Dataset
     batch_size: Optional[int]
 
     def __init__(
-        self, dataset: Dataset, batch_size: Optional[int] = 1, shuffle: bool = False,
+        self,
+        dataset: Dataset,
+        batch_size: Optional[int] = 1,
+        shuffle: bool = False,
     ):
 
         self.dataset = dataset
@@ -133,9 +136,7 @@ class DataLoader:
         ### BEGIN YOUR SOLUTION
         a = next(self.ordering)
         selected_data = self.dataset[a]
-        X = Tensor(selected_data[0])
-        y = Tensor(selected_data[1])
-        return (X, y)
+        return tuple(Tensor(i) for i in selected_data)
         ### END YOUR SOLUTION
 
 

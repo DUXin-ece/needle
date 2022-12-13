@@ -40,7 +40,13 @@ class SGD(Optimizer):
 
 class Adam(Optimizer):
     def __init__(
-        self, params, lr=0.01, beta1=0.9, beta2=0.999, eps=1e-8, weight_decay=0.0,
+        self,
+        params,
+        lr=0.01,
+        beta1=0.9,
+        beta2=0.999,
+        eps=1e-8,
+        weight_decay=0.0,
     ):
         super().__init__(params)
         self.lr = lr
@@ -65,11 +71,11 @@ class Adam(Optimizer):
                 self.beta1 * self.m[key].data + (1 - self.beta1) * penalized_grad
             )
             self.v[key].data = (
-                self.beta2 * self.v[key].data + (1 - self.beta2) * penalized_grad ** 2
+                self.beta2 * self.v[key].data + (1 - self.beta2) * penalized_grad**2
             )
-            corrected_m = self.m[key].data / (1 - self.beta1 ** self.t)
-            corrected_v = self.v[key].data / (1 - self.beta2 ** self.t)
+            corrected_m = self.m[key].data / (1 - self.beta1**self.t)
+            corrected_v = self.v[key].data / (1 - self.beta2**self.t)
             param.data = param.data - self.lr * corrected_m / (
-                corrected_v ** 0.5 + self.eps
+                corrected_v**0.5 + self.eps
             )
         ### END YOUR SOLUTION

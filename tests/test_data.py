@@ -10815,7 +10815,11 @@ def test_dataloader_ndarray():
 
     batch_size = 1
     np.random.seed(0)
-    train_dataset = ndl.data.NDArrayDataset(np.arange(100,))
+    train_dataset = ndl.data.NDArrayDataset(
+        np.arange(
+            100,
+        )
+    )
     train_dataloader = iter(
         ndl.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
     )
@@ -10826,7 +10830,11 @@ def test_dataloader_ndarray():
     )
 
     batch_size = 10
-    train_dataset = ndl.data.NDArrayDataset(np.arange(100,))
+    train_dataset = ndl.data.NDArrayDataset(
+        np.arange(
+            100,
+        )
+    )
     train_dataloader = iter(
         ndl.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
     )

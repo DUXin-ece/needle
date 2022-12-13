@@ -132,7 +132,7 @@ class PowerScalar(TensorOp):
 
     def compute(self, a: NDArray) -> NDArray:
         ### BEGIN YOUR SOLUTION
-        return a ** self.scalar
+        return a**self.scalar
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
@@ -156,7 +156,7 @@ class EWiseDiv(TensorOp):
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
         a, b = node.inputs
-        return out_grad / b, -a / b ** 2 * out_grad
+        return out_grad / b, -a / b**2 * out_grad
         ### END YOUR SOLUTION
 
 

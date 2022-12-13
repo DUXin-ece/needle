@@ -56,7 +56,7 @@ class Op:
         raise NotImplementedError()
 
     def gradient_as_tuple(self, out_grad: "Value", node: "Value") -> Tuple["Value"]:
-        """ Convenience method to always return a tuple from gradient call"""
+        """Convenience method to always return a tuple from gradient call"""
         output = self.gradient(out_grad, node)
         if isinstance(output, tuple):
             return output
@@ -67,7 +67,7 @@ class Op:
 
 
 class TensorOp(Op):
-    """ Op class specialized to output tensors, will be alterate subclasses for other structures """
+    """Op class specialized to output tensors, will be alterate subclasses for other structures"""
 
     def __call__(self, *args):
         return Tensor.make_from_op(self, args)
@@ -133,7 +133,10 @@ class Value:
     def make_const(cls, data, *, requires_grad=False):
         value = cls.__new__(cls)
         value._init(
-            None, [], cached_data=data, requires_grad=requires_grad,
+            None,
+            [],
+            cached_data=data,
+            requires_grad=requires_grad,
         )
         return value
 
@@ -211,7 +214,10 @@ class Tensor(Value):
             cached_data = Tensor._array_from_numpy(array, device=device, dtype=dtype)
 
         self._init(
-            None, [], cached_data=cached_data, requires_grad=requires_grad,
+            None,
+            [],
+            cached_data=cached_data,
+            requires_grad=requires_grad,
         )
 
     @staticmethod
@@ -250,7 +256,10 @@ class Tensor(Value):
     @data.setter
     def data(self, value):
         assert isinstance(value, Tensor)
-        assert value.dtype == self.dtype, "%s %s" % (value.dtype, self.dtype,)
+        assert value.dtype == self.dtype, "%s %s" % (
+            value.dtype,
+            self.dtype,
+        )
         self.cached_data = value.realize_cached_data()
 
     def detach(self):
