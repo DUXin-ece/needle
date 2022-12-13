@@ -3,7 +3,7 @@ sys.path.append('./python')
 import itertools
 import numpy as np
 import pytest
-# import torch
+import torch
 
 import needle as ndl
 from needle import backend_ndarray as nd
@@ -142,32 +142,32 @@ def test_tanh_backward(shape, device):
     backward_check(ndl.tanh, A)
 
 
-# STACK_PARAMETERS = [((5, 5), 0, 1),
-#     ((5, 5), 0, 2),
-#     ((1,5,7), 2, 5)]
-# @pytest.mark.parametrize("shape, axis, l", STACK_PARAMETERS)
-# @pytest.mark.parametrize("device", _DEVICES, ids=["cpu", "cuda"])
-# def test_stack(shape, axis, l, device):
-#     _A = [np.random.randn(*shape).astype(np.float32) for i in range(l)]
-#     A = [ndl.Tensor(nd.array(_A[i]), device=device) for i in range(l)]
-#     A_t = [torch.Tensor(_A[i]) for i in range(l)]
-#     out = ndl.stack(A, axis=axis)
-#     out_t = torch.stack(A_t, dim=axis)
-#     np.testing.assert_allclose(out_t.numpy(), out.numpy(), atol=1e-5, rtol=1e-5)
+STACK_PARAMETERS = [((5, 5), 0, 1),
+    ((5, 5), 0, 2),
+    ((1,5,7), 2, 5)]
+@pytest.mark.parametrize("shape, axis, l", STACK_PARAMETERS)
+@pytest.mark.parametrize("device", _DEVICES, ids=["cpu", "cuda"])
+def test_stack(shape, axis, l, device):
+    _A = [np.random.randn(*shape).astype(np.float32) for i in range(l)]
+    A = [ndl.Tensor(nd.array(_A[i]), device=device) for i in range(l)]
+    A_t = [torch.Tensor(_A[i]) for i in range(l)]
+    out = ndl.stack(A, axis=axis)
+    out_t = torch.stack(A_t, dim=axis)
+    np.testing.assert_allclose(out_t.numpy(), out.numpy(), atol=1e-5, rtol=1e-5)
 
 
-# @pytest.mark.parametrize("shape, axis, l", STACK_PARAMETERS)
-# @pytest.mark.parametrize("device", _DEVICES, ids=["cpu", "cuda"])
-# def test_stack_backward(shape, axis, l, device):
-#     _A = [np.random.randn(*shape).astype(np.float32) for i in range(l)]
-#     A = [ndl.Tensor(nd.array(_A[i]), device=device) for i in range(l)]
-#     A_t = [torch.Tensor(_A[i]) for i in range(l)]
-#     for i in range(l):
-#         A_t[i].requires_grad = True
-#     ndl.stack(A, axis=axis).sum().backward()
-#     torch.stack(A_t, dim=axis).sum().backward()
-#     for i in range(l):
-#         np.testing.assert_allclose(A_t[i].grad.numpy(), A[i].grad.numpy(), atol=1e-5, rtol=1e-5)
+@pytest.mark.parametrize("shape, axis, l", STACK_PARAMETERS)
+@pytest.mark.parametrize("device", _DEVICES, ids=["cpu", "cuda"])
+def test_stack_backward(shape, axis, l, device):
+    _A = [np.random.randn(*shape).astype(np.float32) for i in range(l)]
+    A = [ndl.Tensor(nd.array(_A[i]), device=device) for i in range(l)]
+    A_t = [torch.Tensor(_A[i]) for i in range(l)]
+    for i in range(l):
+        A_t[i].requires_grad = True
+    ndl.stack(A, axis=axis).sum().backward()
+    torch.stack(A_t, dim=axis).sum().backward()
+    for i in range(l):
+        np.testing.assert_allclose(A_t[i].grad.numpy(), A[i].grad.numpy(), atol=1e-5, rtol=1e-5)
 
 
 SUMMATION_PARAMETERS = [((1, 1, 1), None),
@@ -226,34 +226,15 @@ def test_transpose(shape, axes, device):
     np.testing.assert_allclose(np.swapaxes(_A, np_axes[0], np_axes[1]), ndl.transpose(A, axes=axes).numpy(), atol=1e-5, rtol=1e-5)
 
 
-# @pytest.mark.parametrize("shape, axes", SUMMATION_PARAMETERS)
-# @pytest.mark.parametrize("device", _DEVICES, ids=["cpu", "cuda"])
-# def test_logsumexp(shape, axes, device):
-#     _A = np.random.randn(*shape).astype(np.float32)
-#     A = ndl.Tensor(nd.array(_A), device=device)
-#     A_t = torch.Tensor(_A)
-#     if axes is None:
-#         t_axes = tuple(list(range(len(shape))))
-#     else:
-#         t_axes = axes
-#     np.testing.assert_allclose(torch.logsumexp(A_t, dim=t_axes).numpy(), ndl.logsumexp(A, axes=axes).numpy(), atol=1e-5, rtol=1e-5)
+@pytest.mark.parametrize("shape, axes", SUMMATION_PARAMETERS)
+@pytest.mark.parametrize("device", _DEVICES, ids=["cpu", "cuda"])
+def test_logsumexp(shape, axes, device):
+    _A = np.random.randn(*shape).astype(np.float32)
+    A = ndl.Tensor(nd.array(_A), device=device)
+    A_t = torch.Tensor(_A)
+    if axes is None:
+        t_axes = tuple(list(range(len(shape))))
+    else:
+        t_axes = axes
+    np.testing.assert_allclose(torch.logsumexp(A_t, dim=t_axes).numpy(), ndl.logsumexp(A, axes=axes).numpy(), atol=1e-5, rtol=1e-5)
 
-
-
-### MUGRADE ###
-
-TEST_GENERAL_SHAPES = [(3, 1, 2)]
-TEST_MATMUL_DIMS = [(3, 4, 2), (8, 16, 16)]
-TEST_STACK_PARAMETERS = [((2, 3), 0, 3)]
-TEST_SUMMATION_PARAMETERS = [((3, 2), 0), ((2, 1, 2, 3), 3)]
-TEST_LOGSUMEXP_PARAMETERS = [((3, 2), 0), ((2, 1, 2, 3), 3)]
-TEST_BROADCAST_SHAPES = [((2, 1), (2, 4)), ((2, 1, 5), (2, 3, 5))]
-TEST_RESHAPE_SHAPES = [((3, 1, 2), (3, 2, 1))]
-TEST_TRANSPOSE_SHAPES = [(3, 5, 1)]
-TEST_TRANSPOSE_AXES = [(0, 1), (0, 2), None]
-TEST_GETSETITEM_PARAMS = [((3, 2), (2, 1)), ((3, 3, 4), (2, np.s_[2:], np.s_[:3]))]
-
-
-
-if __name__ == "__main__":
-    submit_new_nd_backend()

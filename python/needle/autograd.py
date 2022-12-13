@@ -179,7 +179,7 @@ class TensorTuple(Value):
 
     def detach(self):
         """Create a new tensor that shares the data but detaches from the graph."""
-        return Tuple.make_const(self.realize_cached_data())
+        return TensorTuple.make_const(self.realize_cached_data())
 
 
 class Tensor(Value):
