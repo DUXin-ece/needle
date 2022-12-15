@@ -47,10 +47,10 @@ CudaDims CudaOneDim(size_t size) {
 #define MAX_VEC_SIZE 8
 struct CudaVec {
   uint32_t size;
-  uint32_t data[MAX_VEC_SIZE];
+  int32_t data[MAX_VEC_SIZE];
 };
 
-CudaVec VecToCuda(const std::vector<uint32_t> &x) {
+CudaVec VecToCuda(const std::vector<int32_t> &x) {
   CudaVec shape;
   if (x.size() > MAX_VEC_SIZE)
     throw std::runtime_error("Exceeded CUDA supported max dimesions");
@@ -102,7 +102,7 @@ __global__ void CompactKernel(const scalar_t *a, scalar_t *out, size_t size,
   /// BEGIN YOUR SOLUTION
   if (gid < size) {
     CudaVec index_vec;
-    index_vec.size = 0;
+    index_vec.size = shape.size;
     size_t temp = gid;
     size_t index = offset;
     int shape_size = static_cast<int>(shape.size - 1);
@@ -116,8 +116,8 @@ __global__ void CompactKernel(const scalar_t *a, scalar_t *out, size_t size,
   /// END YOUR SOLUTION
 }
 
-void Compact(const CudaArray &a, CudaArray *out, std::vector<uint32_t> shape,
-             std::vector<uint32_t> strides, size_t offset) {
+void Compact(const CudaArray &a, CudaArray *out, std::vector<int32_t> shape,
+             std::vector<int32_t> strides, size_t offset) {
   /**
    * Compact an array in memory.  Unlike the C++ version, in CUDA this will
    * primarily call the relevant CUDA kernel.  In this case, we illustrate how
@@ -161,7 +161,7 @@ __global__ void EwiseSetitemKernel(const scalar_t *a, scalar_t *out,
 }
 
 void EwiseSetitem(const CudaArray &a, CudaArray *out,
-                  std::vector<uint32_t> shape, std::vector<uint32_t> strides,
+                  std::vector<int32_t> shape, std::vector<int32_t> strides,
                   size_t offset) {
   /**
    * Set items in a (non-compact) array using CUDA.  Yyou will most likely want
@@ -203,7 +203,7 @@ __global__ void ScalarSetitemKernel(scalar_t *out, size_t size, scalar_t val,
 }
 
 void ScalarSetitem(size_t size, scalar_t val, CudaArray *out,
-                   std::vector<uint32_t> shape, std::vector<uint32_t> strides,
+                   std::vector<int32_t> shape, std::vector<int32_t> strides,
                    size_t offset) {
   /**
    * Set items is a (non-compact) array
@@ -574,10 +574,10 @@ void Matmul(const CudaArray &a, const CudaArray &b, CudaArray *out, uint32_t M,
   /// BEGIN YOUR SOLUTION
   CudaDims dim;
   dim.block = dim3(BLOCKDIM_X, BLOCKDIM_Y, 1);
-  dim.grid = dim3(M / BLOCKDIM_X, P / BLOCKDIM_Y, 1);
-  if (M % BLOCKTILE_N != 0)
+  dim.grid = dim3(P / BLOCKTILE_N, M / BLOCKTILE_M, 1);
+  if (P % BLOCKTILE_N != 0)
     dim.grid.x++;
-  if (P % BLOCKTILE_M != 0)
+  if (M % BLOCKTILE_M != 0)
     dim.grid.y++;
   MatMulKernel<<<dim.grid, dim.block>>>(out->ptr, a.ptr, b.ptr, M, N, P);
   /// END YOUR SOLUTION

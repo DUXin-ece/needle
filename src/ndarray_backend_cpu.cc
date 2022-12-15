@@ -42,8 +42,8 @@ void Fill(AlignedArray *out, scalar_t val) {
   }
 }
 
-void next_index(int &carry_bit, std::vector<uint32_t> &index,
-                std::vector<uint32_t> &shape) {
+void next_index(int &carry_bit, std::vector<int32_t> &index,
+                std::vector<int32_t> &shape) {
   int last_axis = static_cast<int>(index.size() - 1);
   for (int axis = last_axis; axis >= 0; axis--) {
     if (index[axis] + carry_bit < shape[axis]) {
@@ -58,7 +58,7 @@ void next_index(int &carry_bit, std::vector<uint32_t> &index,
 }
 
 void Compact(const AlignedArray &a, AlignedArray *out,
-             std::vector<uint32_t> shape, std::vector<uint32_t> strides,
+             std::vector<int32_t> shape, std::vector<int32_t> strides,
              size_t offset) {
   /**
    * Compact an array in memory
@@ -77,7 +77,7 @@ void Compact(const AlignedArray &a, AlignedArray *out,
    * this note.)
    */
   /// BEGIN YOUR SOLUTION
-  std::vector<uint32_t> index(shape.size(), 0);
+  std::vector<int32_t> index(shape.size(), 0);
   size_t cnt = 0;
   while (true) {
     size_t index_a = offset;
@@ -96,7 +96,7 @@ void Compact(const AlignedArray &a, AlignedArray *out,
 }
 
 void EwiseSetitem(const AlignedArray &a, AlignedArray *out,
-                  std::vector<uint32_t> shape, std::vector<uint32_t> strides,
+                  std::vector<int32_t> shape, std::vector<int32_t> strides,
                   size_t offset) {
   /**
    * Set items in a (non-compact) array
@@ -110,7 +110,7 @@ void EwiseSetitem(const AlignedArray &a, AlignedArray *out,
    * compact)
    */
   /// BEGIN YOUR SOLUTION
-  std::vector<uint32_t> index(shape.size(), 0);
+  std::vector<int32_t> index(shape.size(), 0);
   size_t cnt = 0;
   while (true) {
     size_t index_out = offset;
@@ -129,7 +129,7 @@ void EwiseSetitem(const AlignedArray &a, AlignedArray *out,
 }
 
 void ScalarSetitem(const size_t size, scalar_t val, AlignedArray *out,
-                   std::vector<uint32_t> shape, std::vector<uint32_t> strides,
+                   std::vector<int32_t> shape, std::vector<int32_t> strides,
                    size_t offset) {
   /**
    * Set items is a (non-compact) array
@@ -144,7 +144,7 @@ void ScalarSetitem(const size_t size, scalar_t val, AlignedArray *out,
    */
 
   /// BEGIN YOUR SOLUTION
-  std::vector<uint32_t> index(shape.size(), 0);
+  std::vector<int32_t> index(shape.size(), 0);
   size_t cnt = 0;
   while (true) {
     size_t index_out = offset;
