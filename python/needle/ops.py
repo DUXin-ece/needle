@@ -208,7 +208,7 @@ class Transpose(TensorOp):
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        transpose(out_grad, self.axes)
+        return transpose(out_grad, self.axes)
         ### END YOUR SOLUTION
 
 
@@ -280,12 +280,14 @@ class Summation(TensorOp):
         if isinstance(self.axes, int):
             return array_api.summation(a, axis=self.axes, keepdims=False)
         elif isinstance(self.axes, tuple):
-            for axis in self.axes:
-                temp = array_api.summation(a, axis=self.axes, keepdims=False)
+            temp = a
+            for i, axis in enumerate(self.axes):
+                temp = array_api.summation(temp, axis=axis - i, keepdims=False)
             return temp
         else:
-            for axis in range(len(a.shape)):
-                temp = array_api.summation(a, axis=self.axes, keepdims=False)
+            temp = a
+            for i in range(len(a.shape)):
+                temp = array_api.summation(temp, axis=0, keepdims=False)
             return temp
         ### END YOUR SOLUTION
 
@@ -577,16 +579,20 @@ class Flip(TensorOp):
 
     def compute(self, a):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        if self.axes == None:
+            axes = tuple(range(len(a.shape)))
+        else:
+            axes = self.axes
+        return a.flip(axes)
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        return flip(out_grad, self.axes)
         ### END YOUR SOLUTION
 
 
-def flip(a, axes):
+def flip(a, axes=None):
     return Flip(axes)(a)
 
 
@@ -597,12 +603,24 @@ class Dilate(TensorOp):
 
     def compute(self, a):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        shape = []
+        index = []
+        for i in range(len(a.shape)):
+            if i in self.axes:
+                shape.append(a.shape[i] * (1 + self.dilation))
+                index.append(slice(0, shape[i], (1 + self.dilation)))
+            else:
+                shape.append(a.shape[i])
+                index.append(slice(0, shape[i], 1))
+        result = array_api.empty(tuple(shape), device=a.device)
+        result.fill(0)
+        result[tuple(index)] = a
+        return result
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        return undilate(out_grad, self.axes, self.dilation)
         ### END YOUR SOLUTION
 
 
@@ -617,12 +635,23 @@ class UnDilate(TensorOp):
 
     def compute(self, a):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        shape = []
+        index = []
+        for i in range(len(a.shape)):
+            if i in self.axes:
+                shape.append(a.shape[i] // (1 + self.dilation))
+                index.append(slice(0, a.shape[i], (1 + self.dilation)))
+            else:
+                shape.append(a.shape[i])
+                index.append(slice(0, a.shape[i], 1))
+        result = array_api.empty(tuple(shape), device=a.device)
+        result = a[tuple(index)]
+        return result
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        return dilate(out_grad, self.axes, self.dilation)
         ### END YOUR SOLUTION
 
 
@@ -630,6 +659,8 @@ def undilate(a, axes, dilation):
     return UnDilate(axes, dilation)(a)
 
 
+# Currenlty, the size of kernel has to be (K x K x C_in x C_out)
+# There is no limitation on the size of the input matrix
 class Conv(TensorOp):
     def __init__(self, stride: Optional[int] = 1, padding: Optional[int] = 0):
         self.stride = stride
@@ -637,12 +668,59 @@ class Conv(TensorOp):
 
     def compute(self, A, B):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        padded_A = array_api.pad(
+            A,
+            (
+                (0, 0),
+                (self.padding, self.padding),
+                (self.padding, self.padding),
+                (0, 0),
+            ),
+        )
+        N, H, W, C_in = padded_A.shape
+        K1, K2, _, C_out = B.shape
+        Ns, Hs, Ws, Cs = padded_A.strides
+        A_t = padded_A.as_strided(
+            shape=(N, H - K1 + 1, W - K2 + 1, K1, K2, C_in),
+            strides=(Ns, Hs, Ws, Hs, Ws, Cs),
+        ).reshape((N * (H - K1 + 1) * (W - K2 + 1), K1 * K2 * C_in))
+        out = (A_t @ B.reshape((K1 * K2 * C_in, C_out))).reshape(
+            (N, H - K1 + 1, W - K2 + 1, C_out)
+        )
+        # print("####", padded_A.shape)
+        # print("####", B.shape)
+        # print("####", out.shape)
+        # print("#######")
+        index = (
+            slice(0, out.shape[0], 1),
+            slice(0, out.shape[1], self.stride),
+            slice(0, out.shape[2], self.stride),
+            slice(0, out.shape[3], 1),
+        )
+        return out[index]
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        K = node.inputs[1].shape[0]
+        out_grad = dilate(out_grad, axes=(1, 2), dilation=self.stride - 1)
+        grad_a = conv(
+            out_grad,
+            transpose(flip(node.inputs[1], axes=(0, 1)), axes=(2, 3)),
+            padding=K - self.padding - 1,
+        )
+        grad_b = transpose(
+            transpose(
+                conv(
+                    transpose(node.inputs[0], (0, 3)),
+                    transpose(transpose(out_grad, (0, 1)), (1, 2)),
+                    padding=self.padding,
+                ),
+                (0, 1),
+            ),
+            (1, 2),
+        )
+        return grad_a, grad_b
         ### END YOUR SOLUTION
 
 
