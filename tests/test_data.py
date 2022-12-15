@@ -10860,10 +10860,3 @@ def test_dataloader_ndarray():
         ),
     )
 
-
-if __name__ == "__main__":
-    test_flip_horizontal()
-    test_random_crop()
-    test_mnist_dataset()
-    test_dataloader_mnist()
-    test_dataloader_ndarray()

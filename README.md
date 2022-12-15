@@ -20,6 +20,11 @@ python3 -m pytest -v -k "test_dataloader_ndarray"
 python3 -m pytest -l -v -k "test_data"
 ```
 
++ `conv` test
+```bash
+python3 -m pytest -l -v -k "test_conv"
+```
+
+
 ## TODO:
-+ support `Conv`
 + fix bugs in the current application(mnist). It doesn't work because we change the backend from numpy to cpu/cuda. 
