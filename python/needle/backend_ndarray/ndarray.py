@@ -241,14 +241,16 @@ class NDArray:
         """
 
         ### BEGIN YOUR SOLUTION
-        if self.size != prod(new_shape):
-            raise ValueError()
+        if not self.is_compact():
+            a = self.compact()
+        else:
+            a = self
         new_strides = NDArray.compact_strides(new_shape)
         return NDArray.make(
             new_shape,
             strides=tuple(new_strides),
-            device=self.device,
-            handle=self._handle,
+            device=a.device,
+            handle=a._handle,
         )
         ### END YOUR SOLUTION
 
@@ -275,8 +277,8 @@ class NDArray:
         new_shape = []
         new_strides = []
         for axis in new_axes:
-            new_shape.append(self._shape[axis])
-            new_strides.append(self._strides[axis])
+            new_shape.append(self.shape[axis])
+            new_strides.append(self.strides[axis])
         return NDArray.make(
             new_shape,
             strides=tuple(new_strides),
@@ -574,7 +576,6 @@ class NDArray:
             if isinstance(axis, (tuple, list)):
                 assert len(axis) == 1, "Only support reduction over a single axis"
                 axis = axis[0]
-
             view = self.permute(
                 tuple([a for a in range(self.ndim) if a != axis]) + (axis,)
             )
@@ -602,7 +603,24 @@ class NDArray:
         Note: compact() before returning.
         """
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        if isinstance(axes, int):  # int or tuple
+            axes = (axes,)
+        strides = list(self.strides)
+        index = list(len(self.shape) * (0,))
+        for axis in axes:
+            strides[axis] = -self.strides[axis]
+            index[axis] = self.shape[axis] - 1
+        offset = 0
+        for i in range(len(self.shape)):
+            offset += index[i] * self.strides[i]
+        out = NDArray.make(
+            self.shape,
+            strides=strides,
+            device=self.device,
+            handle=self._handle,
+            offset=offset,
+        ).compact()
+        return out
         ### END YOUR SOLUTION
 
     def pad(self, axes):
@@ -612,7 +630,16 @@ class NDArray:
         axes = ( (0, 0), (1, 1), (0, 0)) pads the middle axis with a 0 on the left and right side.
         """
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        shape = tuple(
+            self.shape[i] + axes[i][0] + axes[i][1] for i in range(len(self.shape))
+        )
+        result = self.device.empty(shape, dtype="float32")
+        result.fill(0)
+        idx = []
+        for i in range(len(self.shape)):
+            idx.append(slice(axes[i][0], shape[i] - axes[i][1], 1))
+        result[tuple(idx)] = self
+        return result
         ### END YOUR SOLUTION
 
 
@@ -667,3 +694,7 @@ def max(a, axis=None, keepdims=False):
 
 def summation(a, axis=None, keepdims=False):
     return a.sum(axis=axis, keepdims=keepdims)
+
+
+def pad(a, axes):
+    return a.pad(axes)
