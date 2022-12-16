@@ -28,3 +28,5 @@ python3 -m pytest -l -v -k "test_conv"
 
 ## TODO:
 + fix bugs in the current application(mnist). It doesn't work because we change the backend from numpy to cpu/cuda. 
+
++ `nn.LayerNorm1d` can't work correctly now. `broadcast_to` in 
