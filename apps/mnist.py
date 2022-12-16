@@ -8,17 +8,17 @@ import time
 import os
 
 
-def MLPNet(dim, hidden_dim=200, num_classes=10):
+def MLPNet(dim, hidden_dim=200, num_classes=10, device = None):
     model = nn.Sequential(
         nn.Flatten(),
-        nn.Linear(dim, hidden_dim),
+        nn.Linear(dim, hidden_dim, device),
         nn.ReLU(),
-        nn.Linear(hidden_dim, num_classes),
+        nn.Linear(hidden_dim, num_classes, device),
     )
     return model
 
 
-def epoch(dataloader, model, opt=None):
+def epoch(dataloader, model, opt=None, device=None):
     np.random.seed(4)
     ### BEGIN YOUR SOLUTION
     hit, total = 0, 0
@@ -28,6 +28,8 @@ def epoch(dataloader, model, opt=None):
         model.train()
         for idx, data in enumerate(dataloader):
             x, y = data
+            x._device = device
+            y._device = device
             output = model(x)
             opt.reset_grad()
             loss = loss_func(output, y)
@@ -40,6 +42,8 @@ def epoch(dataloader, model, opt=None):
         model.eval()
         for idx, data in enumerate(dataloader):
             x, y = data
+            x._device = device
+            y._device = device
             output = model(x)
             loss = loss_func(output, y)
             loss_total += loss.numpy()
@@ -56,7 +60,8 @@ def train_mnist(
     optimizer=ndl.optim.Adam,
     lr=0.001,
     hidden_dim=200,
-    data_dir="data",
+    data_dir="data/mnist",
+    device = ndl.cpu()
 ):
     np.random.seed(4)
     ### BEGIN YOUR SOLUTION
@@ -71,11 +76,11 @@ def train_mnist(
         train_dataset, batch_size=batch_size, shuffle=True
     )
     test_dataloader = ndl.data.DataLoader(test_dataset)
-    model = MLPNet(784, hidden_dim=hidden_dim)
+    model = MLPNet(784, hidden_dim=hidden_dim, device = device)
     opt = optimizer(model.parameters(), lr=lr)
 
     for _ in range(epochs):
-        train_err_rate, train_loss = epoch(train_dataloader, model, opt)
+        train_err_rate, train_loss = epoch(train_dataloader, model, opt, device)
         print(
             "average error rate: %.2f, average training loss: %.2f"
             % (train_err_rate, train_loss)
@@ -87,4 +92,4 @@ def train_mnist(
 
 if __name__ == "__main__":
     print(sys.path)
-    train_mnist(data_dir="../data")
+    train_mnist(data_dir="../data/mnist")
