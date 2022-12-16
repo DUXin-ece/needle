@@ -305,6 +305,7 @@ class NDArray:
         """
 
         ### BEGIN YOUR SOLUTION
+        assert len(new_shape) == len(self.shape)
         for i in range(len(new_shape)):
             assert new_shape[i] == self._shape[i] or self._shape[i] == 1
         new_strides = []

@@ -10859,4 +10859,3 @@ def test_dataloader_ndarray():
             ]
         ),
     )
-

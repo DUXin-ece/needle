@@ -376,7 +376,14 @@ class Log(TensorOp):
         ### BEGIN YOUR SOLUTION
         return multiply(
             divide(
-                broadcast_to(Tensor((1,), dtype="float32"), node.shape), node.inputs[0]
+                broadcast_to(
+                    reshape(
+                        Tensor((1,), dtype="float32", device=node.device),
+                        (1,) * len(node.shape),
+                    ),
+                    node.shape,
+                ),
+                node.inputs[0],
             ),
             out_grad,
         )
@@ -411,7 +418,7 @@ class ReLU(TensorOp):
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        return Tensor(node.numpy() > 0, dtype="float32") * out_grad
+        return Tensor(node.numpy() > 0, dtype="float32", device=node.device) * out_grad
         ### END YOUR SOLUTION
 
 

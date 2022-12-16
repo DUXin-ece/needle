@@ -5,7 +5,6 @@ import numpy as np
 import pytest
 from needle import backend_ndarray as nd
 import needle as ndl
-import mugrade
 import itertools
 
 
@@ -591,26 +590,24 @@ def test_op_conv(Z_shape, W_shape, stride, padding, backward, device):
 #     assert np.linalg.norm(np.array(list(out)) - np.array([0.09375, 3.5892258])) < 1e-2
 
 
-# def one_iter_of_cifar10_training(
-#     dataloader, model, niter=1, loss_fn=ndl.nn.SoftmaxLoss(), opt=None, device=None
-# ):
-#     np.random.seed(4)
-#     model.train()
-#     correct, total_loss = 0, 0
-#     i = 1
-#     for batch in dataloader:
-#         opt.reset_grad()
-#         X, y = batch
-#         X, y = ndl.Tensor(X, device=device), ndl.Tensor(y, device=device)
-#         out = model(X)
-#         correct += np.sum(np.argmax(out.numpy(), axis=1) == y.numpy())
-#         loss = loss_fn(out, y)
-#         total_loss += loss.data.numpy() * y.shape[0]
-#         loss.backward()
-#         opt.step()
-#         if i >= niter:
-#             break
-#         i += 1
-#     return correct / (y.shape[0] * niter), total_loss / (y.shape[0] * niter)
-
-
+def one_iter_of_cifar10_training(
+    dataloader, model, niter=1, loss_fn=ndl.nn.SoftmaxLoss(), opt=None, device=None
+):
+    np.random.seed(4)
+    model.train()
+    correct, total_loss = 0, 0
+    i = 1
+    for batch in dataloader:
+        opt.reset_grad()
+        X, y = batch
+        X, y = ndl.Tensor(X, device=device), ndl.Tensor(y, device=device)
+        out = model(X)
+        correct += np.sum(np.argmax(out.numpy(), axis=1) == y.numpy())
+        loss = loss_fn(out, y)
+        total_loss += loss.data.numpy() * y.shape[0]
+        loss.backward()
+        opt.step()
+        if i >= niter:
+            break
+        i += 1
+    return correct / (y.shape[0] * niter), total_loss / (y.shape[0] * niter)

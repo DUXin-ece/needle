@@ -65,8 +65,8 @@ class Adam(Optimizer):
         for key, param in enumerate(self.params):
             penalized_grad = (param.grad + self.weight_decay * param).data
             if key not in self.m:
-                self.m[key] = ndl.init.zeros(*param.grad.shape)
-                self.v[key] = ndl.init.zeros(*param.grad.shape)
+                self.m[key] = ndl.init.zeros(*param.grad.shape, device=param.device)
+                self.v[key] = ndl.init.zeros(*param.grad.shape, device=param.device)
             self.m[key].data = (
                 self.beta1 * self.m[key].data + (1 - self.beta1) * penalized_grad
             )
